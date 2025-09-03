@@ -1,45 +1,66 @@
-def assert_equal(actual, expected):
-    if actual == expected:
-        print("OK")
-    else:
-        print(f"Error! {repr(actual)} != {repr(expected)}")
+def winning_line(strings):
+    strings = set(strings)
+    return len(strings) == 1 and ' ' not in strings
+
+def row_winner(board):
+    return any(winning_line(row) for row in board)
+
+def column_winner(board):
+    return any(winning_line(list(col)) for col in zip(*board))
+
+def main_diagonal_winner(board):
+    return winning_line([row[i] for i, row in enumerate(board)])
+
 def diagonal_winner(board):
-    diag1 = board[0][0] + board[1][1] + board[2][2]
-    diag2 = board[0][2] + board[1][1] + board[2][0]
-    return (
-        (diag1[0] == diag1[1] == diag1[2]) or 
-        (diag2[0] == diag2[1] == diag2[2])
-        )
+    return (main_diagonal_winner(board) or
+            main_diagonal_winner(list(reversed(board))))
 
-assert_equal(
-    diagonal_winner(
-        [
-            ['X', 'O', 'X'],
-            ['X', 'X', 'O'],
-            ['O', 'O', 'X']
-        ]
-    ),
-    True
-)
+def winner(board):
+    return row_winner(board) or column_winner(board) or diagonal_winner(board)
 
-assert_equal(
-    diagonal_winner(
-        [
-            ['X', 'X', 'O'],
-            ['X', 'O', 'O'],
-            ['O', 'X', 'X']
-        ]
-    ),
-    True
-)
+def draw(board):
+    return all(cell != ' ' for row in board for cell in row)
 
-assert_equal(
-    diagonal_winner(
-        [
-            ['O', 'X', 'O'],
-            ['X', 'X', 'X'],
-            ['O', 'O', 'X']
-        ]
-    ),
-    False
-)
+def format_board(board):
+    size = len(board)
+    line = f'\n  {"+".join("-" * size)}\n'
+    rows = [f'{i + 1} {"|".join(row)}' for i, row in enumerate(board)]
+    return f'  {" ".join(str(i + 1) for i in range(size))}\n{line.join(rows)}'
+
+def play_move(board, player):
+    print(f'{player} to play:')
+    row = int(input()) - 1
+    col = int(input()) - 1
+    board[row][col] = player
+    print(format_board(board))
+
+def make_board(size):
+    return [[' '] * size for _ in range(size)]
+
+def print_winner(player):
+    print(f'{player} wins!')
+
+def print_draw():
+    print("It's a draw!")
+
+def play_game(board_size, player1, player2):
+    board = make_board(board_size)
+    print(format_board(board))
+
+    players = [player1, player2]
+    turn = 0
+
+    while True:
+        current_player = players[turn % 2]
+        play_move(board, current_player)
+
+        if winner(board):
+            print_winner(current_player)
+            break
+        if draw(board):
+            print_draw()
+            break
+
+        turn += 1
+
+play_game(3, 'X', 'O')
